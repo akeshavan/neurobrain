@@ -47,5 +47,8 @@
     "webpack": "^4.12.2",
     "webpack-cli": "^3.0.8",
     "yargs": "^10.0.3"
+  },
+  "dependencies": {
+    "ami": "^0.0.2"
   }
 }
