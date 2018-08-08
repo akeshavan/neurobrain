@@ -1,7 +1,7 @@
 /* global describe, it, before */
 
 import chai from 'chai';
-import {Cat, Dog} from '../lib/neurobrain.js';
+import {Cat, Dog, Viewer} from '../lib/neurobrain.js';
 
 chai.expect();
 
@@ -27,6 +27,17 @@ describe('Given an instance of my Dog library', () => {
   describe('when I need the name', () => {
     it('should return the name', () => {
       expect(lib.name).to.be.equal('Dog');
+    });
+  });
+});
+
+describe('Given an instance of my Viewer library', () => {
+  before(() => {
+    lib = new Viewer('test');
+  });
+  describe('when I need the name', () => {
+    it('should return the name', () => {
+      expect(lib.name).to.be.equal('test');
     });
   });
 });
