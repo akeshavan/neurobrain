@@ -1,8 +1,8 @@
 {
-  "name": "webpack-library-starter",
+  "name": "neurobrain",
   "version": "1.0.2",
   "description": "Produce universal library with webpack and es6",
-  "main": "lib/webpack-library-starter.js",
+  "main": "lib/neurobrain.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build && npm run test",
     "dev": "webpack --progress --colors --watch --env dev",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/krasimir/webpack-library-starter.git"
+    "url": "https://github.com/akeshavan/neurobrain.git"
   },
   "keywords": [
     "webpack",
@@ -22,12 +22,12 @@
     "umd",
     "commonjs"
   ],
-  "author": "Krasimir Tsonev",
+  "author": "anisha and tal and nate and lee",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/krasimir/webpack-library-starter/issues"
+    "url": "https://github.com/krasimir/akeshavan/issues"
   },
-  "homepage": "https://github.com/krasimir/webpack-library-starter",
+  "homepage": "https://github.com/akeshavan/neurobrain",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.51",
     "@babel/core": "^7.0.0-beta.51",
