@@ -1,3 +1,4 @@
-import Cat from './cat.js';
-import Dog from './dog.js';
+import Cat from './cat';
+import Dog from './dog';
+
 export { Dog, Cat };
