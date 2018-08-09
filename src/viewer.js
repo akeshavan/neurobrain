@@ -1,5 +1,5 @@
-import THREE from 'three';
-import { stackHelperFactory } from 'ami.js';
+import * as THREE from 'three';
+import * as AMI from 'ami.js';
 
 /*
 import CoreUtils from 'base/core/core.utils';
@@ -12,13 +12,12 @@ import ControlsOrthographic from 'base/controls/controls.trackballortho';
 
 export default class Viewer {
   constructor(name) {
-    window.THREE = THREE;
+    this.THREE = THREE;
+    this.AMI = AMI;
+    // this.CoreUtils = AMI.CoreUtils;
+    this.StackHelper = AMI.stackHelperFactory(THREE);
 
-    const StackHelper = stackHelperFactory(THREE);
-
-    const sh = StackHelper();
-
-    console.log(sh);
+    this.sh = new this.StackHelper();
 
     this._name = name;
   }
