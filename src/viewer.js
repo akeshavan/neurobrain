@@ -10,12 +10,15 @@ import CamerasOrthographic from 'base/cameras/cameras.orthographic';
 import ControlsOrthographic from 'base/controls/controls.trackballortho';
 */
 
+/* eslint-disable */
+
 export class Viewer {
 
   constructor(name) {
 
     this.sh = new AMI.stackHelperFactory(THREE);
-
+    this.AMI = AMI;
+    this.THREE = THREE;
     this._name = name;
     this.loader = new AMI.VolumeLoader(this.container);
     this.reset();
@@ -27,7 +30,7 @@ export class Viewer {
   }
 
   addView(view) {
-    this.views[view.container] = view;
+    this.views[view.element] = view;
   }
 
   dropView(element) {
@@ -38,7 +41,9 @@ export class Viewer {
     return this.views[element];
   }
 
-  dropLayer() {}
+  dropLayer() {
+    this;
+  }
 
   addLayer(file, view) {
     this.loadVolume(file, view);
@@ -52,7 +57,8 @@ export class Viewer {
         // merge files into clean series/stack/frame structure
         var series = loader.data[0].mergeSeries(loader.data);
         var stack = series[0].stack[0];
-        var stackHelper = new AMI.StackHelper(stack);
+        var StackHelper = new AMI.stackHelperFactory(THREE);
+        var stackHelper = new StackHelper(stack);
 
         // center camera and interactor to center of bouding box
         // for nicer experience
@@ -113,7 +119,9 @@ export class View {
 
   _initRenderer() {
     var container = this.container;
-    var camera = new AMI.OrthographicCamera(
+    var OrthographicCamera = new AMI.orthographicCameraFactory(THREE);
+    console.log("container is", container)
+    var camera = new OrthographicCamera(
       container.clientWidth / -2,
       container.clientWidth / 2,
       container.clientHeight / 2,
@@ -121,9 +129,10 @@ export class View {
       0.1,
       10000
     );
-    var controls = new AMI.TrackballOrthoControl(this.camera, this.container);
+    console.log('camera', camera);
+    var controls = new AMI.trackballOrthoControlFactory(this.camera, this.container);
 
-    this.renderer = THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
@@ -147,7 +156,7 @@ export class View {
 
       this.renderer.setSize(container.offsetWidth, container.offsetHeight);
     }
-    this.element.addEventListener('resize', onWindowResize, false);
+    this.container.addEventListener('resize', onWindowResize, false);
 
     this.renderer.render(this.scene, this.camera);
   }
