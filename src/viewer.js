@@ -53,7 +53,7 @@ export class Viewer {
     var loader = this.loader;
 
     loader.load(file)
-      .then(function () {
+      .then(function (data) {
         // merge files into clean series/stack/frame structure
         var series = loader.data[0].mergeSeries(loader.data);
         var stack = series[0].stack[0];
@@ -87,13 +87,16 @@ export class Viewer {
         // tune slice border
         stackHelper.border.color = 0xff9800;
         // stackHelper.border.visible = false;
-
         view.scene.add(stackHelper);
         view.camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
         view.camera.box = box;
+
+        //here is the issue
         view.camera.canvas = canvas;
         view.camera.update();
-        view.camera.fitBox(2);
+
+        //view.camera.fitBox(2);
+        console.log("done loading");
       });
   }
 }
@@ -129,25 +132,36 @@ export class View {
       0.1,
       10000
     );
-    console.log('camera', camera);
-    var controls = new AMI.trackballOrthoControlFactory(this.camera, this.container);
+
+    console.log('camera', camera, camera.position);
+
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setClearColor(0x2196F3, 1);
-    container.appendChild(this.renderer.domElement);
+    this.container.appendChild(this.renderer.domElement);
 
+    console.log('container', container);
+    console.log('c')
+    var TrackballOrthoControl = new AMI.trackballOrthoControlFactory(THREE)
+    console.log("trackball controls are", TrackballOrthoControl);
+    this.camera = camera;
+    var controls = new TrackballOrthoControl(this.camera, this.container);
+    //console.log("controls are", controls);
+    //this.controls = controls;
     this.scene = new THREE.Scene();
 
-    this.camera = camera;
 
-    controls.staticMoving = true;
-    controls.noRotate = true;
+    console.log('camera is', camera);
+
+    // controls.staticMoving = true;
+    //controls.noRotate = true;
     camera.controls = controls;
 
     function onWindowResize() {
+      console.log('resize callback')
       camera.canvas = {
         width: container.offsetWidth,
         height: container.offsetHeight
@@ -156,9 +170,24 @@ export class View {
 
       this.renderer.setSize(container.offsetWidth, container.offsetHeight);
     }
+
     this.container.addEventListener('resize', onWindowResize, false);
 
     this.renderer.render(this.scene, this.camera);
+    var renderer = this.renderer;
+    var scene = this.scene;
+    function animate() {
+      // render
+      controls.update();
+      renderer.render(scene, camera);
+
+      // request new frame
+      requestAnimationFrame(function() {
+        animate();
+      });
+    }
+    animate();
+
   }
 
 }
