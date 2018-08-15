@@ -10,17 +10,17 @@ import CamerasOrthographic from 'base/cameras/cameras.orthographic';
 import ControlsOrthographic from 'base/controls/controls.trackballortho';
 */
 
-/* eslint-disable */
-
 export class Viewer {
 
   constructor(name) {
 
+    /* eslint new-cap: ["error", { "newIsCap": false }] */
     this.sh = new AMI.stackHelperFactory(THREE);
     this.AMI = AMI;
     this.THREE = THREE;
     this._name = name;
     this.loader = new AMI.VolumeLoader(this.container);
+    this.data = [];
     this.reset();
   }
 
@@ -45,58 +45,67 @@ export class Viewer {
     this;
   }
 
-  addLayer(file, view) {
-    this.loadVolume(file, view);
+  addData(file, dataName) {
+    return this.loadVolume(file, dataName);
   }
 
-  loadVolume(file, view) {
+  addLayer(series, viewName) {
+    var canvas;
+    var stack = series[0].stack[0];
+    var StackHelper = new AMI.stackHelperFactory(THREE);
+    var stackHelper = new StackHelper(stack);
+
+    var worldbb = stack.worldBoundingBox();
+    var lpsDims = new THREE.Vector3(worldbb[1] - worldbb[0], worldbb[3] - worldbb[2], worldbb[5] - worldbb[4]);
+    var box = {
+      center: stack.worldCenter().clone(),
+      halfDimensions: new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10)
+    };
+
+    // tune bounding box
+    stackHelper.bbox.visible = false;
+
+    // tune slice border
+    stackHelper.border.color = 0xff9800;
+    stackHelper.border.visible = false;
+
+    console.log('adding layer', viewName);
+
+    // init and zoom
+    canvas = {
+      width: this.views[viewName].container.clientWidth,
+      height: this.views[viewName].container.clientHeight
+    };
+
+    this.views[viewName].scene.add(stackHelper);
+    this.views[viewName].camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
+    this.views[viewName].camera.box = box;
+
+    // here is the issue
+    this.views[viewName].camera.canvas = canvas;
+    // view.camera.orientation = 'coronal';
+    this.views[viewName].camera.update();
+
+    // make it fit the most space: https://github.com/FNNDSC/ami/issues/120
+    this.views[viewName].camera.fitBox(2, 2);
+  }
+
+  loadVolume(file, name) {
     var loader = this.loader;
 
-    loader.load(file)
-      .then(function (data) {
+    return loader.load(file)
+      .then((data) => {
         // merge files into clean series/stack/frame structure
         var series = loader.data[0].mergeSeries(loader.data);
-        var stack = series[0].stack[0];
-        var StackHelper = new AMI.stackHelperFactory(THREE);
-        var stackHelper = new StackHelper(stack);
 
-        // center camera and interactor to center of bouding box
-        // for nicer experience
-        // set camera
-        var worldbb = stack.worldBoundingBox();
-        var lpsDims = new THREE.Vector3(worldbb[1] - worldbb[0], worldbb[3] - worldbb[2], worldbb[5] - worldbb[4]);
+        // loader.free();
+        // loader = null;
 
-        // box: {halfDimensions, center}
-        var box = {
-          center: stack.worldCenter().clone(),
-          halfDimensions: new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10)
-        };
+        console.log('done loading');
+        return new Promise((resolve, reject) => {
+          resolve(series);
+        });
 
-        // init and zoom
-        var canvas = {
-          width: view.container.clientWidth,
-          height: view.container.clientHeight
-        };
-
-        loader.free();
-        loader = null;
-
-        // tune bounding box
-        stackHelper.bbox.visible = false;
-
-        // tune slice border
-        stackHelper.border.color = 0xff9800;
-        // stackHelper.border.visible = false;
-        view.scene.add(stackHelper);
-        view.camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
-        view.camera.box = box;
-
-        //here is the issue
-        view.camera.canvas = canvas;
-        view.camera.update();
-
-        //view.camera.fitBox(2);
-        console.log("done loading");
       });
   }
 }
@@ -112,18 +121,22 @@ export class Viewer {
 
 export class View {
 
-  constructor(element, type = 'orth', plane = 'x') {
+  constructor(element, type, plane) {
     this.element = element;
     this.container = document.getElementById(element);
-    this.type = type;
-    this.plane = plane;
+    this.type = type || 'orth';
+    this.plane = plane || 'x';
     this._initRenderer();
   }
 
   _initRenderer() {
+    var self = this;
     var container = this.container;
+
+    /* eslint new-cap: ["error", { "newIsCap": false }] */
     var OrthographicCamera = new AMI.orthographicCameraFactory(THREE);
-    console.log("container is", container)
+    var TrackballOrthoControl = new AMI.trackballOrthoControlFactory(THREE);
+
     var camera = new OrthographicCamera(
       container.clientWidth / -2,
       container.clientWidth / 2,
@@ -133,35 +146,31 @@ export class View {
       10000
     );
 
-    console.log('camera', camera, camera.position);
+    var controls = new TrackballOrthoControl(camera, this.container);
 
+    this.camera = camera;
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
-    this.renderer.setClearColor(0x2196F3, 1);
+    this.renderer.setClearColor(0x000000, 1);
     this.container.appendChild(this.renderer.domElement);
 
-    console.log('container', container);
-    console.log('c')
-    var TrackballOrthoControl = new AMI.trackballOrthoControlFactory(THREE)
-    console.log("trackball controls are", TrackballOrthoControl);
-    this.camera = camera;
-    var controls = new TrackballOrthoControl(this.camera, this.container);
-    //console.log("controls are", controls);
-    //this.controls = controls;
     this.scene = new THREE.Scene();
 
+    controls.staticMoving = true;
+    controls.noRotate = true;
+    controls.noPan = true;
+    controls.noZoom = false;
+    this.camera.controls = controls;
 
-    console.log('camera is', camera);
-
-    // controls.staticMoving = true;
-    //controls.noRotate = true;
-    camera.controls = controls;
+    this.camera.controls.addEventListener('OnScroll', (e) => {
+      console.log('e.delta', e.delta);
+    });
 
     function onWindowResize() {
-      console.log('resize callback')
+
       camera.canvas = {
         width: container.offsetWidth,
         height: container.offsetHeight
@@ -174,15 +183,14 @@ export class View {
     this.container.addEventListener('resize', onWindowResize, false);
 
     this.renderer.render(this.scene, this.camera);
-    var renderer = this.renderer;
-    var scene = this.scene;
+
     function animate() {
       // render
       controls.update();
-      renderer.render(scene, camera);
+      self.renderer.render(self.scene, camera);
 
       // request new frame
-      requestAnimationFrame(function() {
+      requestAnimationFrame(() => {
         animate();
       });
     }

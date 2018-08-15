@@ -52,6 +52,7 @@
     "ami": "^0.0.2",
     "ami.js": "git+https://github.com/akeshavan/ami.git",
     "net": "^1.0.2",
+    "stats.js": "^0.17.0",
     "three": "^0.95.0"
   }
 }
