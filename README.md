@@ -9,7 +9,7 @@ yarn install --ignore-engines
 yarn build #or yarn dev for hot reload
 ```
 
-In another webpack build, symlink to this repo in the `node_modules` folder, and then you should be able to import:
+In another webpack build (like https://github.com/akeshavan/neurobrain_example), symlink to this repo in the `node_modules` folder, and then you should be able to import:
 
 ```js
 import { Viewer } from 'neurobrain';
