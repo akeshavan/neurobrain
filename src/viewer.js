@@ -98,6 +98,22 @@ export class Viewer {
     // make it fit the most space: https://github.com/FNNDSC/ami/issues/120
     this.views[viewName].camera.fitBox(2, 2);
 
+    this.views[viewName].camera.controls.addEventListener('OnScroll', (event) => {
+      // console.log('e.delta', event.delta);
+      if (event.delta > 0) {
+        if (stackHelper.index >= stackHelper.orientationMaxIndex - 1) {
+          return false;
+        }
+        stackHelper.index += 1;
+      } else {
+        if (stackHelper.index <= 0) {
+          return false;
+        }
+        stackHelper.index -= 1;
+      }
+      return 0;
+    });
+
     this.views[viewName].scene.add(stackHelper);
     console.log('done adding layer');
   }
@@ -180,10 +196,6 @@ export class View {
     controls.noPan = true;
     controls.noZoom = false;
     this.camera.controls = controls;
-
-    this.camera.controls.addEventListener('OnScroll', (e) => {
-      console.log('e.delta', e.delta);
-    });
 
     function onWindowResize() {
 
