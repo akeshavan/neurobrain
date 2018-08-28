@@ -24,6 +24,10 @@ export class Viewer {
     this.reset();
   }
 
+  get name() {
+    return this._name;
+  }
+
   reset() {
     this.views = {};
     this.layers = new Map();
@@ -50,6 +54,7 @@ export class Viewer {
   }
 
   addLayer(series, viewName) {
+
     var canvas;
     var stack = series[0].stack[0];
     var StackHelper = new AMI.stackHelperFactory(THREE);
@@ -62,8 +67,7 @@ export class Viewer {
       halfDimensions: new THREE.Vector3(lpsDims.x + 10, lpsDims.y + 10, lpsDims.z + 10)
     };
 
-    // tune bounding box
-    stackHelper.bbox.visible = false;
+    console.log('in addLayer');
 
     // tune slice border
     stackHelper.border.color = 0xff9800;
@@ -77,7 +81,6 @@ export class Viewer {
       height: this.views[viewName].container.clientHeight
     };
 
-    this.views[viewName].scene.add(stackHelper);
     this.views[viewName].camera.directions = [stack.xCosine, stack.yCosine, stack.zCosine];
     this.views[viewName].camera.box = box;
 
@@ -86,8 +89,17 @@ export class Viewer {
     // view.camera.orientation = 'coronal';
     this.views[viewName].camera.update();
 
+    // tune bounding box
+    stackHelper.bbox.visible = false;
+    this.views[viewName].camera.update();
+
+    console.log('this.views[viewName].camera.stackOrientation;', this.views[viewName].camera.stackOrientation);
+    stackHelper.orientation = this.views[viewName].camera.stackOrientation;
     // make it fit the most space: https://github.com/FNNDSC/ami/issues/120
     this.views[viewName].camera.fitBox(2, 2);
+
+    this.views[viewName].scene.add(stackHelper);
+    console.log('done adding layer');
   }
 
   loadVolume(file, name) {
@@ -121,11 +133,11 @@ export class Viewer {
 
 export class View {
 
-  constructor(element, type, plane) {
+  constructor(element, plane) {
     this.element = element;
     this.container = document.getElementById(element);
-    this.type = type || 'orth';
-    this.plane = plane || 'x';
+    // this.type = type || 'orth';
+    this.plane = plane || 0;
     this._initRenderer();
   }
 
@@ -148,11 +160,15 @@ export class View {
 
     var controls = new TrackballOrthoControl(camera, this.container);
 
+    camera.orientation = this.plane;
+    // camera.update();
+    // camera.stackOrientation = this.plane;
     this.camera = camera;
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
     });
+    this.renderer.localClippingEnabled = true;
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setClearColor(0x000000, 1);
     this.container.appendChild(this.renderer.domElement);
